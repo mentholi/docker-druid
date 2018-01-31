@@ -60,9 +60,12 @@ RUN mvn -U -B org.codehaus.mojo:versions-maven-plugin:2.1:set -DgenerateBackupPo
 
 WORKDIR /
 
+# Make sure that mysql files have correct owner
+RUN chown -R mysql /var/lib/mysql
+
 # Setup metadata store and add sample data
 ADD sample-data.sql sample-data.sql
-RUN /etc/init.d/mysql start \
+RUN find /var/lib/mysql -type f -exec touch {} \; && /etc/init.d/mysql start \
       && mysql -u root -e "GRANT ALL ON druid.* TO 'druid'@'localhost' IDENTIFIED BY 'diurd'; CREATE database druid CHARACTER SET utf8;" \
       && java -cp /usr/local/druid/lib/druid-services-*-selfcontained.jar \
           -Ddruid.extensions.directory=/usr/local/druid/extensions \
